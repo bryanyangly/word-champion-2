@@ -1,8 +1,12 @@
+import levels_loader
+from PyQt6.QtWidgets import QApplication, QMainWindow, QMessageBox
 import sys
-from PyQt6.QtWidgets import QApplication, QMainWindow
 from ui_word_champion_lobby import Ui_MainWindow as Ui_LobbyWindow
 from ui_word_champion_game import Ui_MainWindow as Ui_GameWindow
 from ui_word_champion_result import Ui_MainWindow as Ui_ResultWindow
+
+# Constants
+DATA_ROOT_DIR = "input"
 
 class LobbyWindow(QMainWindow):
     def __init__(self):
@@ -23,7 +27,18 @@ class ResultWindow(QMainWindow):
         self.ui.setupUi(self)
 
 def main():
+    global level_data
     app = QApplication(sys.argv)
+
+    try:
+        level_data = levels_loader.try_load(DATA_ROOT_DIR)
+    except levels_loader.LevelLoadingError as e:
+        msg = QMessageBox()
+        msg.setIcon(QMessageBox.Icon.Critical)
+        msg.setText("Error loading levels: " + str(e))
+        msg.setWindowTitle("Error")
+        msg.exec()
+        sys.exit(1)
 
     lobby_window = LobbyWindow()
     game_window = GameWindow()
