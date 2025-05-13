@@ -10,7 +10,7 @@ from ui_word_champion_game import Ui_MainWindow as Ui_GameWindow
 from ui_word_champion_result import Ui_MainWindow as Ui_ResultWindow
 
 # Constants
-DATA_ROOT_DIR = "input"
+DATA_ROOT_DIR = "data"
 
 class LobbyWindow(QMainWindow):
     def __init__(self):
