@@ -31,6 +31,7 @@ def main():
 
     lobby_window.ui.pushButton.clicked.connect(lambda: lobby_window.hide() or game_window.show())
     game_window.ui.pushButton_abort.clicked.connect(lambda: game_window.hide() or result_window.show())
+    result_window.ui.pushButton_tolobby.clicked.connect(lambda: result_window.hide() or lobby_window.show())
 
     lobby_window.show()
 
