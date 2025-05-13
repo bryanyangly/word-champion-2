@@ -1,7 +1,10 @@
 import levels_loader
-from PyQt6.QtWidgets import QApplication, QMainWindow, QMessageBox
-from PyQt6.QtCore import QTimer
+from PyQt6.QtWidgets import QApplication, QMainWindow, QMessageBox, QGraphicsScene
+from PyQt6.QtCore import QTimer, Qt
+from PyQt6.QtGui import QPixmap, QTransform
 import sys
+import os
+import random
 from ui_word_champion_lobby import Ui_MainWindow as Ui_LobbyWindow
 from ui_word_champion_game import Ui_MainWindow as Ui_GameWindow
 from ui_word_champion_result import Ui_MainWindow as Ui_ResultWindow
@@ -42,6 +45,27 @@ class GameWindow(QMainWindow):
         self.skipped_count = 0 # Reset skipped_count when a new game starts
         self.update_passed_count_label()
         self.update_skipped_count_label()
+
+        # Load and display image
+        level_images = level_data[level_data['level'] == level]['image_name'].tolist()
+        if level_images:
+            image_name = random.choice(level_images)
+            image_path = os.path.join(DATA_ROOT_DIR, level, image_name)
+            pixmap = QPixmap(image_path)
+            if not pixmap.isNull():
+                # Scale the image to fit the graphicsView_image
+                scene_width = self.ui.graphicsView_image.width()
+                scene_height = self.ui.graphicsView_image.height()
+                scaled_pixmap = pixmap.scaled(scene_width, scene_height, aspectRatioMode=Qt.AspectRatioMode.KeepAspectRatio)
+
+                scene = QGraphicsScene()
+                scene.addPixmap(scaled_pixmap)
+                self.ui.graphicsView_image.setScene(scene)
+            else:
+                print(f"Error: Could not load image at {image_path}")
+        else:
+            print(f"Warning: No images found for level {level}")
+
         self.timer.start(1000) # Update every 1 second
         self.show()
 
