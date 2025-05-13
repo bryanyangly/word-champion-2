@@ -1,0 +1,12 @@
+[project]
+name = "word-champion-2"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.9"
+dependencies = [
+    "pandas>=2.2.3",
+    "pyqt6>=6.4.2",
+    "pyqt6-tools>=6.4.2.3.3",
+    "setuptools>=80.4.0",
+]
