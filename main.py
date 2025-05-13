@@ -14,17 +14,33 @@ class LobbyWindow(QMainWindow):
         self.ui = Ui_LobbyWindow()
         self.ui.setupUi(self)
 
+        levels = level_data['level'].unique()
+        for level in levels:
+            image_count = len(level_data[level_data['level'] == level])
+            display_text = f"{level} ({image_count} images)"
+            self.ui.comboBox_levels.addItem(display_text)
+
 class GameWindow(QMainWindow):
     def __init__(self):
         super().__init__()
         self.ui = Ui_GameWindow()
         self.ui.setupUi(self)
+        self.level = None
+
+    def show_with_level(self, level):
+        self.level = level
+        self.setWindowTitle(f"Word Champion Game - {level}")
+        self.show()
 
 class ResultWindow(QMainWindow):
     def __init__(self):
         super().__init__()
         self.ui = Ui_ResultWindow()
         self.ui.setupUi(self)
+
+    def show_with_level(self, level):
+        self.ui.label_level.setText(f"Level: {level}")
+        self.show()
 
 def main():
     global level_data
@@ -44,8 +60,12 @@ def main():
     game_window = GameWindow()
     result_window = ResultWindow()
 
-    lobby_window.ui.pushButton.clicked.connect(lambda: lobby_window.hide() or game_window.show())
-    game_window.ui.pushButton_abort.clicked.connect(lambda: game_window.hide() or result_window.show())
+    lobby_window.ui.pushButton.clicked.connect(lambda: (
+        selected_level := lobby_window.ui.comboBox_levels.currentText(),
+        lobby_window.hide(),
+        game_window.show_with_level(selected_level)
+    ))
+    game_window.ui.pushButton_abort.clicked.connect(lambda: (game_window.hide(), result_window.show_with_level(game_window.level)))
     result_window.ui.pushButton_tolobby.clicked.connect(lambda: result_window.hide() or lobby_window.show())
 
     lobby_window.show()

@@ -64,7 +64,7 @@ class Ui_MainWindow(object):
 
     def retranslateUi(self, MainWindow):
         _translate = QtCore.QCoreApplication.translate
-        MainWindow.setWindowTitle(_translate("MainWindow", "MainWindow"))
+        MainWindow.setWindowTitle(_translate("MainWindow", "Word Champion Result"))
         self.label_level.setText(_translate("MainWindow", "leveltext"))
         self.label_3.setText(_translate("MainWindow", "Time used"))
         self.label.setText(_translate("MainWindow", "Level"))
