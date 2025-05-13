@@ -28,6 +28,7 @@ class GameWindow(QMainWindow):
         self.level = None
         self.countdown = 0
         self.time_used = 0
+        self.passed_count = 0  # Initialize passed_count
         self.timer = QTimer()
         self.timer.timeout.connect(self.update_time)
         self.ui.label_timeleft.setText("")
@@ -37,6 +38,10 @@ class GameWindow(QMainWindow):
         self.countdown = countdown
         self.setWindowTitle(f"Word Champion Game - {level}")
         self.time_used = 0
+        self.passed_count = 0 # Reset passed_count when a new game starts
+        self.skipped_count = 0 # Reset skipped_count when a new game starts
+        self.update_passed_count_label()
+        self.update_skipped_count_label()
         self.timer.start(1000) # Update every 1 second
         self.show()
 
@@ -47,7 +52,21 @@ class GameWindow(QMainWindow):
         if self.time_used > self.countdown:
             self.timer.stop()
             self.hide()
-            result_window.show_with_level(self.level, self.time_used)
+            result_window.show_with_level(self.level, self.time_used, self.passed_count, self.skipped_count)
+
+    def increment_passed_count(self):
+        self.passed_count += 1
+        self.update_passed_count_label()
+
+    def update_passed_count_label(self):
+        self.ui.label_passedcount.setText(str(self.passed_count))
+
+    def increment_skipped_count(self):
+        self.skipped_count += 1
+        self.update_skipped_count_label()
+
+    def update_skipped_count_label(self):
+        self.ui.label_skippedcount.setText(str(self.skipped_count))
 
 class ResultWindow(QMainWindow):
     def __init__(self):
@@ -55,9 +74,11 @@ class ResultWindow(QMainWindow):
         self.ui = Ui_ResultWindow()
         self.ui.setupUi(self)
 
-    def show_with_level(self, level, time_used):
+    def show_with_level(self, level, time_used, passed_count, skipped_count):
         self.ui.label_level.setText(level)
         self.ui.label_timeused.setText(f"{time_used}")
+        self.ui.label_passedcount.setText(str(passed_count))
+        self.ui.label_skippedcount.setText(str(skipped_count))
         self.show()
 
 def main():
@@ -85,7 +106,9 @@ def main():
         lobby_window.hide(),
         game_window.show_with_level(selected_level, countdown)
     ))
-    game_window.ui.pushButton_abort.clicked.connect(lambda: (game_window.hide(), result_window.show_with_level(game_window.level, game_window.time_used)))
+    game_window.ui.pushButton_abort.clicked.connect(lambda: (game_window.hide(), result_window.show_with_level(game_window.level, game_window.time_used, game_window.passed_count, game_window.skipped_count)))
+    game_window.ui.pushButton_pass.clicked.connect(game_window.increment_passed_count)
+    game_window.ui.pushButton_skip.clicked.connect(game_window.increment_skipped_count)
     result_window.ui.pushButton_tolobby.clicked.connect(lambda: result_window.hide() or lobby_window.show())
 
     lobby_window.show()
