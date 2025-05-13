@@ -1,5 +1,5 @@
 import levels_loader
-from PyQt6.QtWidgets import QApplication, QMainWindow, QMessageBox, QGraphicsScene
+from PyQt6.QtWidgets import QApplication, QMainWindow, QMessageBox
 from PyQt6.QtCore import QTimer, Qt
 from PyQt6.QtGui import QPixmap, QTransform
 import sys
@@ -35,6 +35,7 @@ class GameWindow(QMainWindow):
         self.timer = QTimer()
         self.timer.timeout.connect(self.update_time)
         self.ui.label_timeleft.setText("")
+        self.resize(800, 600)
 
     def show_with_level(self, level, countdown):
         self.level = level
@@ -43,6 +44,7 @@ class GameWindow(QMainWindow):
         self.time_used = 0
         self.passed_count = 0 # Reset passed_count when a new game starts
         self.skipped_count = 0 # Reset skipped_count when a new game starts
+        self.displayed_images = [] # Initialize displayed_images
         self.update_passed_count_label()
         self.update_skipped_count_label()
 
@@ -53,14 +55,7 @@ class GameWindow(QMainWindow):
             image_path = os.path.join(DATA_ROOT_DIR, level, image_name)
             pixmap = QPixmap(image_path)
             if not pixmap.isNull():
-                # Scale the image to fit the graphicsView_image
-                scene_width = self.ui.graphicsView_image.width()
-                scene_height = self.ui.graphicsView_image.height()
-                scaled_pixmap = pixmap.scaled(scene_width, scene_height, aspectRatioMode=Qt.AspectRatioMode.KeepAspectRatio)
-
-                scene = QGraphicsScene()
-                scene.addPixmap(scaled_pixmap)
-                self.ui.graphicsView_image.setScene(scene)
+                self.ui.label_image.setPixmap(pixmap)
             else:
                 print(f"Error: Could not load image at {image_path}")
         else:
@@ -68,6 +63,7 @@ class GameWindow(QMainWindow):
 
         self.timer.start(1000) # Update every 1 second
         self.show()
+        self.showMaximized()
 
     def update_time(self):
         self.time_used += 1
@@ -81,6 +77,7 @@ class GameWindow(QMainWindow):
     def increment_passed_count(self):
         self.passed_count += 1
         self.update_passed_count_label()
+        self.load_new_image()
 
     def update_passed_count_label(self):
         self.ui.label_passedcount.setText(str(self.passed_count))
@@ -91,6 +88,33 @@ class GameWindow(QMainWindow):
 
     def update_skipped_count_label(self):
         self.ui.label_skippedcount.setText(str(self.skipped_count))
+
+    def load_new_image(self):
+        level_images = level_data[level_data['level'] == self.level]['image_name'].tolist()
+        available_images = [img for img in level_images if img not in self.displayed_images]
+
+        if not available_images:
+            self.displayed_images = []
+            available_images = level_images
+
+        image_name = random.choice(available_images)
+        self.displayed_images.append(image_name)
+
+        image_path = os.path.join(DATA_ROOT_DIR, self.level, image_name)
+        pixmap = QPixmap(image_path)
+        if not pixmap.isNull():
+            # Scale the image to fit the label and keep aspect ratio
+            label_width = self.ui.label_image.width()
+            label_height = self.ui.label_image.height()
+            scaled_pixmap = pixmap.scaled(label_width, label_height, Qt.AspectRatioMode.KeepAspectRatio, Qt.TransformationMode.SmoothTransformation)
+            self.ui.label_image.setPixmap(scaled_pixmap)
+        else:
+            print(f"Error: Could not load image at {image_path}")
+
+    def increment_skipped_count_and_load_image(self):
+        self.skipped_count += 1
+        self.update_skipped_count_label()
+        self.load_new_image()
 
 class ResultWindow(QMainWindow):
     def __init__(self):
@@ -132,7 +156,7 @@ def main():
     ))
     game_window.ui.pushButton_abort.clicked.connect(lambda: (game_window.hide(), result_window.show_with_level(game_window.level, game_window.time_used, game_window.passed_count, game_window.skipped_count)))
     game_window.ui.pushButton_pass.clicked.connect(game_window.increment_passed_count)
-    game_window.ui.pushButton_skip.clicked.connect(game_window.increment_skipped_count)
+    game_window.ui.pushButton_skip.clicked.connect(game_window.increment_skipped_count_and_load_image)
     result_window.ui.pushButton_tolobby.clicked.connect(lambda: result_window.hide() or lobby_window.show())
 
     lobby_window.show()
